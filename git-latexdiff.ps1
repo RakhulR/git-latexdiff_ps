@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    A script to generate a LaTeX diff between two Git commits or branches.
+    A script to generate a LaTeX diff between two Git commits or branches. Version 1.1
 
 .DESCRIPTION
     This script uses Git and LaTeX tools to create a diff of a LaTeX document between two specified commits or branches.
@@ -117,6 +117,15 @@ try{
 	}
 
 	# Create temporary directories
+
+	if (-not (Test-Path -Path $TmpdirPrefix)) {
+		Write-Verbose-Custom "crat"
+		New-Item -ItemType Directory -Path $TmpdirPrefix | Out-Null
+		Write-Verbose-Custom "Directory created: $TmpdirPrefix"
+	} else {
+		Write-Verbose-Custom "Directory already exists: $TmpdirPrefix"
+	}
+	$TmpdirPrefix = Convert-Path $TmpdirPrefix
 	$TmpDir = Join-Path $TmpdirPrefix "git-latexdiff-$([Guid]::NewGuid().ToString())"
 	New-Item -ItemType Directory -Path $TmpDir | Out-Null
 	$OldDir = Join-Path $TmpDir "old"
@@ -171,11 +180,11 @@ try{
 		Write-Verbose-Custom "Flattening documents with latexpand"
 		latexpand "$OldDir\$Main" > "old-$MainBase-fl.tex"
 		$oldContent = Get-Content -Path "old-$MainBase-fl.tex" -Encoding Unicode
-		$oldContent | Set-Content -Path "old-$MainBase-fl.tex" -Encoding UTF8
+		# $oldContent | Set-Content -Path "old-$MainBase-fl.tex" -Encoding UTF8
 		
 		latexpand "$NewDir\$Main" > "new-$MainBase-fl.tex"
 		$newContent = Get-Content -Path "new-$MainBase-fl.tex" -Encoding Unicode
-		$newContent | Set-Content -Path "new-$MainBase-fl.tex" -Encoding UTF8
+		# $newContent | Set-Content -Path "new-$MainBase-fl.tex" -Encoding UTF8
 		
 	} catch {
 		Write-Error "Error flattening documents: $_"
@@ -185,7 +194,7 @@ try{
 	try {
 		# Run latexdiff
 		Write-Verbose-Custom "Running latexdiff"
-		latexdiff "old-$MainBase-fl.tex" "new-$MainBase-fl.tex" > "diff.tex"
+		latexdiff --encoding=utf16 "old-$MainBase-fl.tex" "new-$MainBase-fl.tex" > "diff.tex"
 		$Content = Get-Content -Path "diff.tex" -Encoding Unicode
 		$Content | Set-Content -Path "diff.tex" -Encoding UTF8
 	} catch {
