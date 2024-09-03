@@ -54,7 +54,9 @@ This command compares the LaTeX document `main.tex` between `commit1` and `commi
 
 ## Additional Setup
 
-To use this script, add the directory containing `git-latexdiff.ps1` to the system PATH and set the execution policy in PowerShell by executing the following command as an administrator:
+To use this script, add the directory containing `git-latexdiff.ps1` to the system PATH. 
+
+If you are running a ps1 file in the PowerShell for the first time, set the execution policy in PowerShell by executing the following command as an administrator:
 
 ```powershell
 Set-ExecutionPolicy RemoteSigned
@@ -62,4 +64,4 @@ Set-ExecutionPolicy RemoteSigned
 
 ## License
 
-I do not know much about licensing, i made this script for my personal use since i like to use powershell to get things done. You can do whatever you want with the script unless its something illegal. I will not be responsable for anything you do with this script and this does not come with any guaranties.
+I do not know much about licensing. I made this script for my personal use since I like to use PowerShell to get things done. You can do whatever you want with the script unless it’s something illegal. I will not be responsible for anything you do with this script, and it does not come with any guarantees.

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    A script to generate a LaTeX diff between two Git commits or branches. Version 1.1
+    A script to generate a LaTeX diff between two Git commits or branches. Version 1.2
 
 .DESCRIPTION
     This script uses Git and LaTeX tools to create a diff of a LaTeX document between two specified commits or branches.
@@ -174,17 +174,17 @@ try{
 	}
 
 	Set-Location $TmpDir
-
+	
+	$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
+	
 	try {
 		# Flatten documents
 		Write-Verbose-Custom "Flattening documents with latexpand"
-		latexpand "$OldDir\$Main" > "old-$MainBase-fl.tex"
-		$oldContent = Get-Content -Path "old-$MainBase-fl.tex" -Encoding Unicode
-		# $oldContent | Set-Content -Path "old-$MainBase-fl.tex" -Encoding UTF8
+		$oldContent = latexpand "$OldDir\$Main"
+		[System.IO.File]::WriteAllLines("$TmpDir\old-$MainBase-fl.tex", $oldContent, $Utf8NoBomEncoding)
 		
-		latexpand "$NewDir\$Main" > "new-$MainBase-fl.tex"
-		$newContent = Get-Content -Path "new-$MainBase-fl.tex" -Encoding Unicode
-		# $newContent | Set-Content -Path "new-$MainBase-fl.tex" -Encoding UTF8
+		$newContent = latexpand "$NewDir\$Main"
+		[System.IO.File]::WriteAllLines("$TmpDir\new-$MainBase-fl.tex", $newContent, $Utf8NoBomEncoding)
 		
 	} catch {
 		Write-Error "Error flattening documents: $_"
@@ -194,29 +194,28 @@ try{
 	try {
 		# Run latexdiff
 		Write-Verbose-Custom "Running latexdiff"
-		latexdiff --encoding=utf16 "old-$MainBase-fl.tex" "new-$MainBase-fl.tex" > "diff.tex"
-		$Content = Get-Content -Path "diff.tex" -Encoding Unicode
-		$Content | Set-Content -Path "diff.tex" -Encoding UTF8
+		$Content = latexdiff "old-$MainBase-fl.tex" "new-$MainBase-fl.tex"
+		[System.IO.File]::WriteAllLines("$TmpDir\diff.tex", $Content, $Utf8NoBomEncoding)
 	} catch {
 		Write-Error "Error running latexdiff: $_"
 		exit 1
 	}
 
-	Move-Item -Force "$TmpDir\diff.tex" "$NewDir\$Main"
+	Move-Item -Force "$TmpDir\diff.tex" "$NewDir\diff.tex"
 
 	# Compile result
 	Write-Verbose-Custom "Compiling result"
 	Set-Location "$NewDir\$MainDir"
-	pdflatex $MainBase
+	pdflatex "diff"
 	if ($NoBibtex) {
-		pdflatex $MainBase
+		pdflatex "diff"
 	} else {
-		bibtex $MainBase
-		pdflatex $MainBase
-		pdflatex $MainBase
+		bibtex "diff"
+		pdflatex "diff"
+		pdflatex "diff"
 	}
 
-	$PdfFile = "$NewDir\$MainDir\$MainBase.pdf"
+	$PdfFile = "$NewDir\$MainDir\diff.pdf"
 
 	if (-not (Test-Path $PdfFile)) {
 		throw "No PDF file generated."
